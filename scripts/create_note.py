@@ -25,10 +25,22 @@ def create_note(template_type="inspiration"):
         target_dir = os.path.join(root_path, "日报")
         file_name = f"日报-{date_display}.md"
     else:
-        # 默认使用灵感模板
-        template_path = os.path.join(root_path, "daynote", "model", "灵感.md")
+        # 支持自定义模板
+        template_path = os.path.join(root_path, "daynote", "model", f"{template_type}.md")
         target_dir = os.path.join(root_path, "daynote", date_str)
         file_name = f"{template_type}-{time_str}.md"
+        
+        # 如果自定义模板不存在，则创建一个基本模板
+        if not os.path.exists(template_path):
+            with open(template_path, 'w', encoding='utf-8') as f:
+                f.write(f"# {template_type} - {{date}}\n\n")
+                f.write("## 🎯 目标\n\n")
+                f.write("## 📚 调研内容\n\n")
+                f.write("## 💡 发现\n\n")
+                f.write("## ⚠️ 问题\n\n")
+                f.write("## ✅ 解决方案\n\n")
+                f.write("## 📝 总结\n\n")
+            print(f"已创建新的模板文件: {template_path}")
     
     # 创建目标目录（如果不存在）
     os.makedirs(target_dir, exist_ok=True)
@@ -52,7 +64,7 @@ def create_note(template_type="inspiration"):
         with open(target_path, 'r', encoding='utf-8') as file:
             content = file.read()
         
-        content = content.replace("{{date}}", date_display)
+        content = content.replace("{date}", date_display)
         
         with open(target_path, 'w', encoding='utf-8') as file:
             file.write(content)
