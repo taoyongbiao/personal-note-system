@@ -1,0 +1,24 @@
+# 忽略历史记录目录
+.history/
+
+# 忽略虚拟环境目录
+.venv/
+venv/
+
+# 忽略编译生成的文件
+*.pyc
+__pycache__/
+
+# 忽略日志文件
+*.log
+
+# 忽略临时文件
+*.tmp
+*.temp
+
+# 忽略操作系统生成的文件
+.DS_Store
+Thumbs.db
+
+# 忽略 IDE 配置文件（如果需要）
+.vscode/settings.json
