@@ -1,0 +1,3 @@
+[submodule "daynote"]
+	path = daynote
+	url = ./daynote
