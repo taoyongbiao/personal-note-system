@@ -17,15 +17,23 @@ from datetime import datetime
 import argparse
 import re
 
+# 尝试导入markdownify库用于解析markdown内容
+try:
+    from markdownify import markdownify
+    markdownify_available = True
+except ImportError:
+    markdownify_available = False
+    print("警告: markdownify库未安装，将使用正则表达式解析markdown内容。请运行 'pip install markdownify' 安装。")
+
 # 尝试导入dashscope，如果没有安装则提示用户
 try:
-    import dashscope
-    from dashscope import Generation
-    DASHSCOPE_AVAILABLE = True
+    from openai import OpenAI
+    openai_available = True
 except ImportError:
-    print("警告: 未安装dashscope库，将使用模拟AI功能")
-    print("请运行 'pip install dashscope' 安装依赖")
-    DASHSCOPE_AVAILABLE = False
+    openai_available = False
+    print("警告: openai库未安装，AI功能将不可用。请运行 'pip install openai' 安装。")
+
+
 
 
 def get_todays_notes():
@@ -77,14 +85,28 @@ def extract_note_content(note_path):
         with open(note_path, 'r', encoding='utf-8') as f:
             content = f.read()
         
-        # 使用正则表达式提取各个部分的内容
-        # 支持带emoji的标题格式
-        for section in content_sections:
-            # 匹配 ## 标题 或 ## emoji 标题 格式
-            pattern = rf"##\s*(?:[^\s]*\s*)*{section}.*?\n(.*?)(?=\n##|\Z)"
-            match = re.search(pattern, content, re.DOTALL)
-            if match:
-                content_sections[section] = match.group(1).strip()
+        # 如果markdownify库可用，则使用markdownify来解析markdown内容
+        if markdownify_available:
+            # 首先使用正则表达式提取各个部分的原始内容
+            for section in content_sections:
+                # 匹配 ## 标题 或 ## emoji 标题 格式，使用更高效的正则表达式
+                pattern = rf"##\s*[^\n]*?{section}[^\n]*\n(.*?)(?=\n##|\Z)"
+                match = re.search(pattern, content, re.DOTALL)
+                if match:
+                    raw_content = match.group(1).strip()
+                    # 使用markdownify将markdown内容转换为纯文本
+                    # 这样可以正确处理markdown格式如粗体、斜体等
+                    text_content = markdownify(raw_content).strip()
+                    content_sections[section] = text_content
+        else:
+            # 如果markdownify不可用，使用正则表达式提取各个部分的内容
+            # 支持带emoji的标题格式
+            for section in content_sections:
+                # 匹配 ## 标题 或 ## emoji 标题 格式，使用更高效的正则表达式
+                pattern = rf"##\s*[^\n]*?{section}[^\n]*\n(.*?)(?=\n##|\Z)"
+                match = re.search(pattern, content, re.DOTALL)
+                if match:
+                    content_sections[section] = match.group(1).strip()
                 
     except Exception as e:
         print(f"读取笔记文件 {note_path} 时出错: {e}")
@@ -92,9 +114,9 @@ def extract_note_content(note_path):
     return content_sections
 
 
-def call_qwen_api(prompt):
+def call_openai_api(prompt):
     """
-    调用Qwen大模型API
+    调用OpenAI API
     
     Args:
         prompt (str): 发送给模型的提示文本
@@ -102,38 +124,41 @@ def call_qwen_api(prompt):
     Returns:
         str: 模型返回的结果
     """
-    # 检查是否安装了dashscope库
-    if not DASHSCOPE_AVAILABLE:
+    # 检查是否安装了openai库
+    if not openai_available:
         # 模拟返回结果
-        return f"[模拟结果] 这是由Qwen模型生成的对以下内容的分析:\n{prompt[:100]}..."
+        return f"[模拟结果] 这是由OpenAI模型生成的对以下内容的分析:\n{prompt[:100]}..."
     
     try:
         # 从环境变量获取API密钥
-        api_key = os.environ.get('DASHSCOPE_API_KEY')
+        api_key = os.environ.get('OPENAI_API_KEY','3d061ebe28224561a964d4070842cb4c.UndstCPsmmdAg1uq')
         if not api_key:
-            print("警告: 未设置DASHSCOPE_API_KEY环境变量，将使用模拟AI功能")
+            print("警告: 未设置OPENAI_API_KEY环境变量，将使用模拟AI功能")
             # 模拟返回结果
-            return f"[模拟结果] 这是由Qwen模型生成的对以下内容的分析:\n{prompt[:100]}..."
+            return f"[模拟结果] 这是由OpenAI模型生成的对以下内容的分析:\n{prompt[:100]}..."
         
-        # 设置API密钥
-        dashscope.api_key = api_key
+        # 从环境变量获取基础URL和模型名称
+        base_url = os.environ.get('OPENAI_BASE_URL', 'https://open.bigmodel.cn/api/paas/v4/')
+        model = os.environ.get('OPENAI_MODEL', 'glm-4.6v-flash')
         
-        # 调用Qwen模型
-        response = Generation.call(
-            model='qwen-plus',
-            prompt=prompt,
+        # 创建OpenAI客户端
+        client = OpenAI(api_key=api_key, base_url=base_url)
+        
+        # 调用OpenAI模型
+        print("正在调用OpenAI API...")
+        response = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "user", "content": prompt}
+            ],
             max_tokens=1000,
             temperature=0.7
         )
         
-        # 检查响应是否成功
-        if response.status_code == 200:
-            return response.output.text
-        else:
-            print(f"调用Qwen API失败: {response.message}")
-            return "AI分析暂时不可用"
+        print("OpenAI API调用成功")
+        return response.choices[0].message.content
     except Exception as e:
-        print(f"调用Qwen API时出错: {e}")
+        print(f"调用OpenAI API时出错: {e}")
         return "AI分析暂时不可用"
 
 
@@ -171,14 +196,14 @@ def ai_summarize_notes(notes_data):
 
 请用中文回答，保持专业且易于理解。"""
 
-    # 调用Qwen API
-    ai_response = call_qwen_api(prompt)
+    # 调用OpenAI API
+    ai_response = call_openai_api(prompt)
     return ai_response
 
 
 def evaluate_note_with_ai(note_data):
     """
-    使用AI辅助根据综合评价标准对单条笔记进行评分
+    使用AI对笔记进行评价
     
     Args:
         note_data (dict): 单条笔记的数据
@@ -229,7 +254,9 @@ def evaluate_note_with_ai(note_data):
 只需返回以上内容，不要添加其他文字。"""
 
     # 调用AI获取评分
-    ai_response = call_qwen_api(prompt)
+    print("开始调用AI进行笔记评价...")
+    ai_response = call_openai_api(prompt)
+    print("AI评价完成")
     scores["AI评语"] = ai_response
     
     # 解析AI返回的评分
@@ -431,6 +458,7 @@ def main():
     for path in notes_paths:
         print(f"正在处理: {os.path.basename(path)}")
         content = extract_note_content(path)
+        print(f"笔记 {os.path.basename(path)} 内容提取完成")
         notes_data.append(content)
     
     # 3. AI总结
@@ -442,10 +470,11 @@ def main():
     print("正在评价笔记...")
     evaluations = []
     for i, note_data in enumerate(notes_data):
-        print(f"正在评价笔记 {i+1}/{len(notes_data)}...")
+        print(f"正在评价笔记 {i+1}/{len(notes_data)}: {notes_paths[i]}...")
         evaluation = evaluate_note_with_ai(note_data)
         evaluation["笔记编号"] = i + 1
         evaluations.append(evaluation)
+        print(f"笔记 {i+1} 评价完成")
     print("笔记评价完成")
     
     # 5. 生成报告
