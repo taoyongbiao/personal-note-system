@@ -59,6 +59,26 @@ note/
     └── settings.json       # 设置配置
 ```
 
+## AI驱动的灵感笔记汇总与评价脚本
+
+`scripts/summarize_notes.py` 是一个AI驱动的脚本，用于自动汇总和评价您的灵感笔记。
+
+### 功能特点
+
+- 自动扫描`daynote`目录下的今日笔记
+- 使用AI对笔记进行总结和评价
+- 生成详细的评价报告
+
+### 使用方法
+
+1. 确保已安装依赖：`pip install -r requirements.txt`
+2. 设置API密钥环境变量：`OPENAI_API_KEY=your_api_key`
+3. 运行脚本：`python scripts/summarize_notes.py`
+
+### 依赖
+
+- `openai`：用于调用OpenAI API
+
 ## 更多信息
 
 请参考以下文档了解更多详情：
