@@ -5,6 +5,17 @@ import shutil
 from datetime import datetime
 import argparse
 
+def find_project_root():
+    """查找项目根目录 - 从当前脚本位置向上查找"""
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    # 向上查找包含 README.md 的目录作为项目根目录
+    while current_dir != os.path.dirname(current_dir):  # 防止到达文件系统根目录
+        if os.path.exists(os.path.join(current_dir, "README.md")):
+            return current_dir
+        current_dir = os.path.dirname(current_dir)
+    # 如果没有找到 README.md，则返回脚本所在目录的上两级
+    return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 def create_note(template_type="inspiration"):
     """根据模板类型创建笔记"""
     # 获取当前日期和时间
@@ -12,8 +23,8 @@ def create_note(template_type="inspiration"):
     time_str = datetime.now().strftime("%H%M%S")
     date_display = datetime.now().strftime("%Y-%m-%d")
     
-    # 项目根路径
-    root_path = r"c:\Users\P30015874206\Desktop\note"
+    # 项目根路径 - 动态查找
+    root_path = find_project_root()
     
     # 根据模板类型确定路径和文件名
     if template_type == "inspiration":

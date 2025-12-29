@@ -34,7 +34,16 @@ except ImportError:
     print("警告: openai库未安装，AI功能将不可用。请运行 'pip install openai' 安装。")
 
 
-
+def find_project_root():
+    """查找项目根目录 - 从当前脚本位置向上查找"""
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    # 向上查找包含 README.md 的目录作为项目根目录
+    while current_dir != os.path.dirname(current_dir):  # 防止到达文件系统根目录
+        if os.path.exists(os.path.join(current_dir, "README.md")):
+            return current_dir
+        current_dir = os.path.dirname(current_dir)
+    # 如果没有找到 README.md，则返回脚本所在目录的上两级
+    return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 def get_todays_notes():
     """
@@ -43,8 +52,8 @@ def get_todays_notes():
     Returns:
         list: 包含今天所有灵感笔记文件路径的列表
     """
-    # 项目根路径
-    root_path = r"c:\Users\P30015874206\Desktop\note"
+    # 项目根路径 - 动态查找
+    root_path = find_project_root()
     
     # 获取今天的日期
     today = datetime.now().strftime("%Y%m%d")
@@ -421,8 +430,8 @@ def save_report(report_content):
     Args:
         report_content (str): 报告内容
     """
-    # 项目根路径
-    root_path = r"c:\Users\P30015874206\Desktop\note"
+    # 项目根路径 - 动态查找
+    root_path = find_project_root()
     
     # 创建报告目录（如果不存在）
     reports_dir = os.path.join(root_path, "日报")

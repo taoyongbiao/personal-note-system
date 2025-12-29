@@ -1,0 +1,32 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: 创建灵感笔记",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/scripts/create_note.py",
+            "args": ["--template", "inspiration"],
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "Python: 汇总今日笔记",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/scripts/summarize_notes.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "Python: 创建灵感笔记（先运行任务）",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/scripts/create_note.py",
+            "args": ["--template", "inspiration"],
+            "preLaunchTask": "create-inspiration-note",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}
