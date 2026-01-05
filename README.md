@@ -9,6 +9,7 @@
 - 快捷键操作
 - 自动替换日期占位符
 - Git 子模块管理
+- **新增：集成mkdocs文档系统**
 
 ## 安装设置
 
@@ -41,6 +42,14 @@
 - `Ctrl+Alt+2` - 创建日报
 - `Ctrl+Alt+3` - 创建自定义笔记
 
+### 文档系统 (新增)
+
+项目集成了mkdocs文档系统，可通过以下方式访问：
+
+- 启动本地文档服务：`python scripts/start_docs.py serve`
+- 构建文档网站：`python scripts/start_docs.py build`
+- 文档将运行在 http://127.0.0.1:8000
+
 ## 目录结构
 
 ```
@@ -52,7 +61,10 @@ note/
 │       └── 日报.md          # 日报模板
 ├── 日报/                   # 自动生成的日报目录
 ├── scripts/                # 脚本目录
-│   └── create_note.py      # 创建笔记的Python脚本
+│   ├── create_note.py      # 创建笔记的Python脚本
+│   ├── summarize_notes.py  # AI驱动的笔记分析脚本
+│   └── start_docs.py       # 文档服务启动脚本
+├── docs/                   # 文档源文件目录
 └── .vscode/                # VSCode配置目录
     ├── tasks.json          # 任务配置
     ├── keybindings.json    # 快捷键配置
@@ -75,9 +87,30 @@ note/
 2. 设置API密钥环境变量：`OPENAI_API_KEY=your_api_key`
 3. 运行脚本：`python scripts/summarize_notes.py`
 
+## 文档系统 (新增)
+
+项目集成了mkdocs文档系统，提供完整的项目文档网站。
+
+### 功能特点
+
+- 基于Markdown的文档生成
+- 美观的Material主题
+- 响应式设计
+- 搜索功能
+- 深色/浅色主题切换
+
+### 使用方法
+
+1. 启动本地文档服务：`python scripts/start_docs.py serve`
+2. 构建文档网站：`python scripts/start_docs.py build`
+
 ### 依赖
 
-- `openai`：用于调用OpenAI API
+- `mkdocs`：静态网站生成器
+- `mkdocs-material`：主题
+- `mkdocs-git-revision-date-localized-plugin`：修订日期插件
+- `mkdocs-minify-plugin`：压缩插件
+- `mkdocs-macros-plugin`：宏插件
 
 ## 更多信息
 
@@ -85,3 +118,4 @@ note/
 - [使用说明书.md](使用说明书.md) - 系统详细使用指南
 - [子模块使用说明.md](子模块使用说明.md) - Git子模块管理说明
 - [task.md](task.md) - 项目任务规划
+- [文档网站](http://127.0.0.1:8000) - 完整的交互式文档（运行文档服务后）

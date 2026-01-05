@@ -17,13 +17,13 @@ from datetime import datetime
 import argparse
 import re
 
-# 尝试导入markdownify库用于解析markdown内容
+# 尝试导入markdownify库用于解析内容
 try:
     from markdownify import markdownify
     markdownify_available = True
 except ImportError:
     markdownify_available = False
-    print("警告: markdownify库未安装，将使用正则表达式解析markdown内容。请运行 'pip install markdownify' 安装。")
+    print("警告: markdownify库未安装，将使用正则表达式解析内容。请运行 'pip install markdownify' 安装。")
 
 # 尝试导入dashscope，如果没有安装则提示用户
 try:
@@ -32,6 +32,9 @@ try:
 except ImportError:
     openai_available = False
     print("警告: openai库未安装，AI功能将不可用。请运行 'pip install openai' 安装。")
+except Exception as e:
+    openai_available = False
+    print(f"警告: openai库加载出错({e})，AI功能将不可用。请确保已正确安装openai库。")
 
 
 def find_project_root():
@@ -94,7 +97,7 @@ def extract_note_content(note_path):
         with open(note_path, 'r', encoding='utf-8') as f:
             content = f.read()
         
-        # 如果markdownify库可用，则使用markdownify来解析markdown内容
+        # 如果markdownify库可用，则使用来解析内容
         if markdownify_available:
             # 首先使用正则表达式提取各个部分的原始内容
             for section in content_sections:
@@ -103,12 +106,12 @@ def extract_note_content(note_path):
                 match = re.search(pattern, content, re.DOTALL)
                 if match:
                     raw_content = match.group(1).strip()
-                    # 使用markdownify将markdown内容转换为纯文本
-                    # 这样可以正确处理markdown格式如粗体、斜体等
+                    # 使用将内容转换为纯文本
+                    # 这样可以正确处理格式如粗体、斜体等
                     text_content = markdownify(raw_content).strip()
                     content_sections[section] = text_content
         else:
-            # 如果markdownify不可用，使用正则表达式提取各个部分的内容
+            # 如果不可用，使用正则表达式提取各个部分的内容
             # 支持带emoji的标题格式
             for section in content_sections:
                 # 匹配 ## 标题 或 ## emoji 标题 格式，使用更高效的正则表达式
@@ -252,15 +255,15 @@ def evaluate_note_with_ai(note_data):
 笔记内容：
 {note_content}
 
-请按以下格式返回结果：
-完整性：<分数>/20
-深度：<分数>/20
-实用性：<分数>/20
-创新性：<分数>/20
-反思性：<分数>/20
-评语：<简要评语>
+请按以下格式严格返回结果：
+完整性：X/20
+深度：X/20
+实用性：X/20
+创新性：X/20
+反思性：X/20
+评语：简要评语
 
-只需返回以上内容，不要添加其他文字。"""
+请注意：只需要返回以上格式内容，不要添加其他文字。"""
 
     # 调用AI获取评分
     print("开始调用AI进行笔记评价...")
@@ -268,27 +271,31 @@ def evaluate_note_with_ai(note_data):
     print("AI评价完成")
     scores["AI评语"] = ai_response
     
-    # 解析AI返回的评分
+    # 解析AI返回的评分 - 使用更精确的正则表达式
     try:
-        lines = ai_response.split('\n')
-        for line in lines:
-            if '完整性：' in line:
-                score = int(line.split('：')[1].split('/')[0])
-                scores["完整性"] = min(20, max(0, score))
-            elif '深度：' in line:
-                score = int(line.split('：')[1].split('/')[0])
-                scores["深度"] = min(20, max(0, score))
-            elif '实用性：' in line:
-                score = int(line.split('：')[1].split('/')[0])
-                scores["实用性"] = min(20, max(0, score))
-            elif '创新性：' in line:
-                score = int(line.split('：')[1].split('/')[0])
-                scores["创新性"] = min(20, max(0, score))
-            elif '反思性：' in line:
-                score = int(line.split('：')[1].split('/')[0])
-                scores["反思性"] = min(20, max(0, score))
-    except Exception as e:
+        # 使用更精确的正则表达式匹配评分
+        patterns = {
+            "完整性": r"完整性[：:]\s*(\d+)",
+            "深度": r"深度[：:]\s*(\d+)",
+            "实用性": r"实用性[：:]\s*(\d+)",
+            "创新性": r"创新性[：:]\s*(\d+)",
+            "反思性": r"反思性[：:]\s*(\d+)"
+        }
+        
+        for category, pattern in patterns.items():
+            match = re.search(pattern, ai_response)
+            if match:
+                score = int(match.group(1))
+                # 确保分数在合理范围内
+                scores[category] = min(20, max(0, score))
+    except ValueError as e:
         print(f"解析AI评分时出错: {e}")
+        print(f"AI返回内容: {ai_response}")
+        # 如果AI评分解析失败，使用原有规则进行评分
+        return evaluate_note(note_data)
+    except Exception as e:
+        print(f"解析AI评分时发生未知错误: {e}")
+        print(f"AI返回内容: {ai_response}")
         # 如果AI评分解析失败，使用原有规则进行评分
         return evaluate_note(note_data)
     

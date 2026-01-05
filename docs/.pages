@@ -1,0 +1,39 @@
+# .pages - awesome-pages配置文件
+
+# 配置排序方式
+sort: false
+
+# 设置目录的标题和排序
+title: 索引
+nav:
+  - 首页: index.md
+  - 系统概述:
+    - 项目介绍: overview/introduction.md
+    - 功能特性: overview/features.md
+    - 目录结构: overview/directory-structure.md
+  - 快速开始:
+    - 安装设置: getting-started/installation.md
+    - 基本使用: getting-started/basic-usage.md
+    - 快捷键操作: getting-started/shortcuts.md
+  - 使用指南:
+    - 笔记创建: guides/note-creation.md
+    - 模板使用: guides/templates.md
+    - AI评价系统: guides/ai-evaluation.md
+    - 任务检查: guides/task-check.md
+  - 配置说明:
+    - VSCode配置: configuration/vscode.md
+    - 项目配置: configuration/project-config.md
+  - 开发文档:
+    - 设计文档: development/design.md
+    - API参考: development/api.md
+  - 工具使用:
+    - MkDocs: tools/mkdocs.md
+    - 其他工具: tools/other.md
+  - 内容索引:
+    - 笔记索引: note_index.md
+    - 任务索引: task_index.md
+    - 日报索引: daily_report_index.md
+  - 附录:
+    - 常见问题: appendix/faq.md
+    - 故障排除: appendix/troubleshooting.md
+

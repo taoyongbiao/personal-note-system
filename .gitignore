@@ -22,3 +22,12 @@ Thumbs.db
 
 # 忽略 IDE 配置文件（如果需要）
 .vscode/settings.json
+
+# MkDocs 构建产物
+site/
+# 自动生成的 API 文档源文件
+docs/api/
+docs/reference/
+# 插件可能产生的缓存
+.cache/
+cache/
